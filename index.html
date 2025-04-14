@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香港國家安全知識測驗</title>
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #d40000;
+            text-align: center;
+            border-bottom: 2px solid #d40000;
+            padding-bottom: 10px;
+        }
+        .quiz-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .options {
+            margin-left: 20px;
+        }
+        .option {
+            margin: 8px 0;
+        }
+        button {
+            background-color: #d40000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+        }
+        button:hover {
+            background-color: #b30000;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .result {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            height: 80px;
+        }
+        .timer {
+            text-align: center;
+            font-size: 20px;
+            color: #d40000;
+            margin: 10px 0;
+        }
+        .admin-panel {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: none;
+        }
+        .answer-comparison {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        .admin-btn {
+            background-color: #333;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.nsed.gov.hk/images/logo.png" alt="香港特別行政區政府國家安全處標誌">
+    </div>
+    <h1>香港國家安全知識測驗</h1>
+    
+    <div class="timer" id="timer">剩餘時間: 10:00</div>
+    
+    <div class="quiz-container">
+        <form id="quiz-form">
+            <div class="question">
+                <p>1. 根據《香港國安法》，下列哪項不屬於危害國家安全的行為？</p>
+                <div class="options">
+                    <div class="option"><input type="radio" name="q1" value="A" required> A. 分裂國家</div>
+                    <div class="option"><input type="radio" name="q1" value="B"> B. 顛覆國家政權</div>
+                    <div class="option"><input type="radio" name="q1" value="C"> C. 組織非法遊行</div>
+                    <div class="option"><input type="radio" name="q1" value="D"> D. 恐怖活動</div>
+                </div>
+            </div>
+            
+            <!-- 問題2-20的結構與問題1相同，為節省篇幅省略 -->
+            <!-- 實際使用時請保持所有問題結構完整 -->
+            
+            <div class="question">
+                <p>20. 香港特別行政區政府設立國家安全處的主要目的是：</p>
+                <div class="options">
+                    <div class="option"><input type="radio" name="q20" value="A" required> A. 執行香港國安法</div>
+                    <div class="option"><input type="radio" name="q20" value="B"> B. 開展國家安全宣傳教育</div>
+                    <div class="option"><input type="radio" name="q20" value="C"> C. 協調各部門維護國家安全工作</div>
+                    <div class="option"><input type="radio" name="q20" value="D"> D. 以上都是</div>
+                </div>
+            </div>
+            
+            <button type="button" id="submit-btn" disabled>提交答案</button>
+        </form>
+        
+        <div class="result" id="result"></div>
+        <div class="answer-comparison" id="answer-comparison"></div>
+    </div>
+    
+    <div class="admin-panel" id="admin-panel">
+        <h3>管理員區域</h3>
+        <input type="password" id="admin-password" placeholder="輸入管理員密碼">
+        <button type="button" class="admin-btn" onclick="checkAdmin()">確認</button>
+        <div id="correct-answers"></div>
+    </div>
+
+    <script>
+        // 正確答案
+        const correctAnswers = {
+            q1: "C", q2: "C", q3: "A", q4: "A", q5: "D",
+            q6: "B", q7: "D", q8: "D", q9: "A", q10: "B",
+            q11: "A", q12: "C", q13: "B", q14: "D", q15: "C",
+            q16: "D", q17: "C", q18: "C", q19: "B", q20: "D"
+        };
+
+        // 問題描述
+        const questions = [
+            "1. 根據《香港國安法》，下列哪項不屬於危害國家安全的行為？",
+            "2. 香港特別行政區維護國家安全的四項重點工作不包括：",
+            "3. 國家安全十大堅持中，第一條堅持是什麼？",
+            "4. 香港特別行政區維護國家安全委員會的英文簡稱是：",
+            "5. 根據國家安全總體規劃，國家安全工作應當堅持的原則不包括：",
+            "6. 香港國安法於哪一年頒布實施？",
+            "7. 下列哪項不屬於國家安全的重點領域？",
+            "8. 香港特別行政區維護國家安全的主要法律依據是：",
+            "9. 國家安全教育日的日期是：",
+            "10. 香港特別行政區維護國家安全委員會由誰擔任主席？",
+            "11. 國家安全工作的根本目的是：",
+            "12. 香港國安法規定的四類危害國家安全罪行不包括：",
+            "13. 國家安全體系中的"總體國家安全觀"首次提出是在：",
+            "14. 香港特別行政區維護國家安全的重點工作之一是加強對哪個群體的教育？",
+            "15. 根據國家安全十大堅持，國家安全工作應當以什麼為宗旨？",
+            "16. 香港國安法規定，案件在特定情況下可由哪個機關行使管轄權？",
+            "17. 國家安全教育的核心內容不包括：",
+            "18. 香港特別行政區維護國家安全委員會的職責不包括：",
+            "19. 國家安全十大堅持中，強調要統籌什麼和安全？",
+            "20. 香港特別行政區政府設立國家安全處的主要目的是："
+        ];
+
+        // 選項內容
+        const options = {
+            q1: ["A. 分裂國家", "B. 顛覆國家政權", "C. 組織非法遊行", "D. 恐怖活動"],
+            q2: ["A. 完善法律制度", "B. 加強執法力量", "C. 推動經濟發展", "D. 開展國家安全教育"],
+            q3: ["A. 堅持黨對國家安全工作的絕對領導", "B. 堅持中國特色國家安全道路", "C. 堅持以人民安全為宗旨", "D. 堅持統籌發展和安全"],
+            q4: ["A. NSED", "B. HKPF", "C. LEGCO", "D. CE"],
+            q5: ["A. 預防為主", "B. 綜合治理", "C. 依法管理", "D. 經濟優先"],
+            q6: ["A. 2019年", "B. 2020年", "C. 2021年", "D. 2022年"],
+            q7: ["A. 政治安全", "B. 經濟安全", "C. 文化安全", "D. 個人隱私安全"],
+            q8: ["A. 基本法", "B. 香港國安法", "C. 刑事罪行條例", "D. 以上都是"],
+            q9: ["A. 4月15日", "B. 7月1日", "C. 10月1日", "D. 12月4日"],
+            q10: ["A. 香港警務處處長", "B. 香港特別行政區行政長官", "C. 中央政府駐港聯絡辦公室主任", "D. 國務院港澳事務辦公室主任"],
+            q11: ["A. 維護國家主權、安全和發展利益", "B. 保障人民群眾生命財產安全", "C. 促進經濟快速發展", "D. 加強國際影響力"],
+            q12: ["A. 分裂國家罪", "B. 顛覆國家政權罪", "C. 貪污受賄罪", "D. 恐怖活動罪"],
+            q13: ["A. 2012年", "B. 2014年", "C. 2017年", "D. 2020年"],
+            q14: ["A. 公務員", "B. 青少年", "C. 商界人士", "D. 以上都是"],
+            q15: ["A. 以政治安全為宗旨", "B. 以經濟安全為宗旨", "C. 以人民安全為宗旨", "D. 以軍事安全為宗旨"],
+            q16: ["A. 香港法院", "B. 內地法院", "C. 中央人民政府駐香港特別行政區維護國家安全公署", "D. 以上都有可能"],
+            q17: ["A. 國家主權和領土完整教育", "B. 國家安全法律法規教育", "C. 反間諜技能培訓", "D. 國家安全形勢教育"],
+            q18: ["A. 分析研判香港特別行政區維護國家安全形勢", "B. 制定香港特別行政區維護國家安全政策", "C. 審理國家安全犯罪案件", "D. 推進香港特別行政區維護國家安全的法律制度和執行機制建設"],
+            q19: ["A. 經濟", "B. 發展", "C. 改革", "D. 開放"],
+            q20: ["A. 執行香港國安法", "B. 開展國家安全宣傳教育", "C. 協調各部門維護國家安全工作", "D. 以上都是"]
+        };
+
+        // 計時器變量
+        let timeLeft = 600; // 10分鐘 = 600秒
+        let timerInterval;
+        
+        // 檢查是否所有問題已回答
+        function checkAllAnswered() {
+            const allQuestions = document.querySelectorAll('[name^="q"]');
+            let allAnswered = true;
+            
+            allQuestions.forEach(q => {
+                const checked = document.querySelector(`input[name="${q.name}"]:checked`);
+                if (!checked) {
+                    allAnswered = false;
+                }
+            });
+            
+            document.getElementById("submit-btn").disabled = !allAnswered;
+        }
+        
+        // 添加事件監聽器檢查答案
+        document.querySelectorAll('input[type="radio"]').forEach(input => {
+            input.addEventListener('change', checkAllAnswered);
+        });
+        
+        // 開始計時器
+        function startTimer() {
+            timerInterval = setInterval(function() {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("時間到！系統將自動提交您的答案。");
+                    calculateScore();
+                }
+            }, 1000);
+        }
+        
+        // 更新計時器顯示
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById("timer").textContent = `剩餘時間: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+        
+        // 計算分數
+        function calculateScore() {
+            clearInterval(timerInterval);
+            
+            let score = 0;
+            const userAnswers = {};
+            const form = document.getElementById("quiz-form");
+            let comparisonHTML = "<h3>答案對比：</h3><ol>";
+            
+            for (let i = 1; i <= 20; i++) {
+                const questionName = "q" + i;
+                const selectedOption = form.elements[questionName].value;
+                userAnswers[questionName] = selectedOption;
+                
+                if (selectedOption === correctAnswers[questionName]) {
+                    score++;
+                    comparisonHTML += `<li class="correct">${questions[i-1]}<br>您的答案: ${options[questionName][selectedOption.charCodeAt(0)-65]} (正確)</li>`;
+                } else {
+                    comparisonHTML += `<li class="incorrect">${questions[i-1]}<br>您的答案: ${options[questionName][selectedOption.charCodeAt(0)-65]}<br>正確答案: ${options[questionName][correctAnswers[questionName].charCodeAt(0)-65]}</li>`;
+                }
+            }
+            
+            comparisonHTML += "</ol>";
+            
+            const resultElement = document.getElementById("result");
+            resultElement.textContent = `您的得分是: ${score}/20`;
+            resultElement.style.display = "block";
+            
+            document.getElementById("answer-comparison").innerHTML = comparisonHTML;
+            
+            // 根據分數給出不同評價
+            if (score >= 18) {
+                resultElement.style.color = "green";
+                resultElement.textContent += "，優秀！您對香港國家安全知識掌握得很好！";
+            } else if (score >= 15) {
+                resultElement.style.color = "blue";
+                resultElement.textContent += "，良好！您對香港國家安全知識有較好了解！";
+            } else if (score >= 10) {
+                resultElement.style.color = "orange";
+                resultElement.textContent += "，及格！建議您進一步學習香港國家安全相關知識！";
+            } else {
+                resultElement.style.color = "red";
+                resultElement.textContent += "，不及格！請認真學習香港國家安全相關知識！";
+            }
+            
+            // 滾動到結果位置
+            resultElement.scrollIntoView({ behavior: 'smooth' });
+            
+            // 禁用所有選項和提交按鈕
+            document.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.disabled = true;
+            });
+            document.getElementById("submit-btn").disabled = true;
+        }
+        
+        // 管理員檢查
+        function checkAdmin() {
+            const password = document.getElementById("admin-password").value;
+            if (password === "testans") {
+                let answersHTML = "<h3>正確答案：</h3><ol>";
+                
+                for (let i = 1; i <= 20; i++) {
+                    const q = "q" + i;
+                    answersHTML += `<li>${questions[i-1]}<br>正確答案: ${options[q][correctAnswers[q].charCodeAt(0)-65]}</li>`;
+                }
+                
+                answersHTML += "</ol>";
+                document.getElementById("correct-answers").innerHTML = answersHTML;
+            } else {
+                alert("密碼錯誤！");
+            }
+        }
+        
+        // 頁面加載時開始計時
+        window.onload = function() {
+            startTimer();
+            document.getElementById("admin-panel").style.display = "block";
+        };
+        
+        // 提交按鈕事件
+        document.getElementById("submit-btn").addEventListener("click", calculateScore);
+    </script>
+</body>
+</html>
